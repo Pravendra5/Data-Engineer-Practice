@@ -1,0 +1,62 @@
+-- we will solve a question that involves working with a table named job_listings, which contains job postings from various companies on LinkedIn. 
+-- The objective is to write a SQL query that identifies and counts the number of companies that have posted duplicate job listings.
+
+-- ( Note: Duplicate job Listings are those job postings that are from the same company (company_id) that have identical title and description. ) 
+
+use practice;
+
+CREATE TABLE job_listings (
+    company_id INT,
+    job_id INT,
+    title VARCHAR(255),
+    description TEXT
+);
+
+INSERT INTO job_listings (company_id, job_id, title, description) VALUES
+(827, 248, 'Business Analyst', 'Business analyst evaluates past and current business data with the primary goal of improving decision-making processes within organisations.'),
+(845, 149, 'Business Analyst', 'Business analyst evaluates past and current business data with the primary goal of improving decision-making processes within organisations.'),
+(345, 945, 'Data Analyst', 'Data analyst reviews data to identify key insights into a business\'s customers and ways the data can be used to solve problems.'),
+(345, 164, 'Data Analyst', 'Data analyst reviews data to identify key insights into a business\'s customers and ways the data can be used to solve problems.'),
+(244, 172, 'Data Engineer', 'Data engineer works in a variety of settings to build systems that collect, manage, and convert raw data into usable information for data scientists and business analysts to interpret.');
+
+select * from job_listings;
+
+-- Approach - 1
+
+with job_count_cte as (
+select 
+company_id,
+title,
+description,
+count(job_id) as job_count
+from job_listings
+group by company_id, title, description )
+
+select count(distinct company_id) as duplicate_companies
+from job_count_cte
+where job_count > 1;
+
+
+-- Subquery
+
+select  count(distinct company_id) as duplicate_companies
+from
+(select 
+company_id,
+title,
+description,
+count(job_id) as job_count
+from job_listings
+group by company_id, title, description order by job_id) as job_count_cte
+where job_count > 1;
+
+--  window functions
+
+with cte_job as(
+ Select company_id, title, description, row_number() over(partition by company_id order by job_id) as job_count from job_listings 
+ )
+ Select count(distinct company_id) as duplicate_companies from cte_job where job_count>1 
+
+
+
+
