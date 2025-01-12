@@ -1,0 +1,38 @@
+use practice;
+
+create table office ( emp_id int
+, emp_status varchar(10)
+, time_id datetime);
+
+insert into office values ('1', 'in', '2023-12-22 09:00:00');
+insert into office values ('1', 'out', '2023-12-22 09:15:00');
+insert into office values ('2', 'in', '2023-12-22 09:00:00');
+insert into office values ('2', 'out', '2023-12-22 09:15:00');
+insert into office values ('2', 'in', '2023-12-22 09:30:00');
+insert into office values ('3', 'out', '2023-12-22 09:00:00');
+insert into office values ('3', 'in', '2023-12-22 09:15:00');
+insert into office values ('3', 'out', '2023-12-22 09:30:00');
+insert into office values ('3', 'in', '2023-12-22 09:45:00');
+insert into office values ('4', 'in', '2023-12-22 09:45:00');
+insert into office values ('5', 'out', '2023-12-22 09:40:00');
+
+select * from office;
+
+**************************************Approach-1 *************************************
+
+with cte as (
+select emp_id, emp_status, time_id,
+row_number() over(partition by emp_id order by time_id desc) as rn
+from office )
+select emp_id from cte where rn = 1 and emp_status = 'in';
+ 
+**************************************Approach - 2************************************
+
+select emp_id 
+from (
+select 
+emp_id, emp_status, time_id,
+lead(emp_status) over(partition by emp_id order by time_id) as next_status
+from office ) as cte
+where emp_status = 'in'
+ and (next_status != 'out' or next_status is null)
