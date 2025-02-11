@@ -1,0 +1,32 @@
+from pyspark.sql import SparkSession
+from pyspark.sql.window import Window
+from pyspark.sql.functions import col, lead, lag, when, coalesce
+
+# Initialize Spark Session
+spark = SparkSession.builder.appName("SeatAssignment").getOrCreate()
+
+# Sample Data
+data = [(1, "Abbot"), (2, "Doris"), (3, "Emerson"), (4, "Green"), (5, "Jeames")]
+columns = ["id", "student"]
+
+# Create DataFrame
+df = spark.createDataFrame(data, columns)
+
+wind_spec = Window.orderBy("id")
+
+df = df.withColumns({
+    "next_student": lead("student").over(wind_spec),
+    "previous_student": lag("student").over(wind_spec)
+})
+
+# df = df.withColumn("student",
+#                    coalesce(
+#                        when(df.id%2 != 0, df.next_student), df.student, df.previous_student
+#                    )).select("id", "student")
+
+df = df.withColumn("student",
+                   when(col("id") % 2 != 0, coalesce(col("next_student"), col("student"))
+                        ).otherwise(col("previous_student"))
+                   ).select("id", "student")
+
+df.show()
