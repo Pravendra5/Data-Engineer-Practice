@@ -1,0 +1,27 @@
+use practice;
+ 
+CREATE TABLE seat (
+    id  INT,
+    student varchar(50)
+);
+
+INSERT INTO seat (id, student) VALUES
+(1, 'Abbot'),
+(2, 'Doris'),
+(3, 'Emerson '),
+(4, 'Green'),
+(5, 'Jeames');
+
+select * from seat;
+
+with cte as(
+select id, student,
+lead(student) over(order by id) as next_student,
+lag(student) over(order by id) as previous_student
+from seat)
+
+-- we can use ifnull() in mysql
+
+select id, 
+case when id%2 != 0 then coalesce(next_student, student) else previous_student end as student
+from cte
