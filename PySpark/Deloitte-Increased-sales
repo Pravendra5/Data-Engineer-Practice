@@ -1,0 +1,44 @@
+from pyspark.sql import SparkSession
+from pyspark.sql.functions import lag, col, min
+from pyspark.sql.window import Window
+
+
+
+spark = SparkSession.builder.appName("Deloitte-Interview").getOrCreate()
+
+product_data = [
+    (1, 'Laptops', 'Electronics'),
+    (2, 'Jeans', 'Clothing'),
+    (3, 'Chairs', 'Home Appliances')
+]
+
+product_df = spark.createDataFrame(product_data,  ["product_id", "product_name", "category"])
+
+sales_data = [
+    (1, 2019, 1000.00),
+    (1, 2020, 1200.00),
+    (1, 2021, 1100.00),
+    (2, 2019, 500.00),
+    (2, 2020, 600.00),
+    (2, 2021, 900.00),
+    (3, 2019, 300.00),
+    (3, 2020, 450.00),
+    (3, 2021, 400.00)
+]
+
+sales_df = spark.createDataFrame(sales_data, ["product_id", "year", "total_sales_revenue"])
+
+wind_spec = Window.partitionBy("product_id").orderBy("year")
+
+sales_df = sales_df.withColumns({
+    "previous": lag("total_sales_revenue").over(wind_spec),
+    "revenue_diff": (col("total_sales_revenue") - lag("total_sales_revenue").over(wind_spec))
+})
+
+growing_products_df = sales_df.groupBy("product_id").agg(
+    min("revenue_diff").alias("min_revenue_diff")
+).filter(col("min_revenue_diff") > 0).select("product_id")
+
+final_df = growing_products_df.join(product_df, "product_id")
+
+final_df.show()
