@@ -1,0 +1,86 @@
+use practice;
+
+drop table if exists customers;
+create table customers
+(
+    id int,
+    first_name  varchar(50),
+    last_name   varchar(50)
+);
+insert into customers values(1, 'Carolyn', 'O''Lunny');
+insert into customers values(2, 'Matteo', 'Husthwaite');
+insert into customers values(3, 'Melessa', 'Rowesby');
+
+drop table if exists campaigns;
+create table campaigns
+(
+    id int,
+    customer_id int,
+    name varchar(50)
+);
+insert into campaigns values(2, 1, 'Overcoming Challenges');
+insert into campaigns values(4, 1, 'Business Rules');
+insert into campaigns values(3, 2, 'YUI');
+insert into campaigns values(1, 3, 'Quantitative Finance');
+insert into campaigns values(5, 3, 'MMC');
+
+drop table if exists events;
+create table events
+(
+    campaign_id int,
+    status varchar(50)
+);
+insert into events values(1, 'success');
+insert into events values(1, 'success');
+insert into events values(2, 'success');
+insert into events values(2, 'success');
+insert into events values(2, 'success');
+insert into events values(2, 'success');
+insert into events values(2, 'success');
+insert into events values(3, 'success');
+insert into events values(3, 'success');
+insert into events values(3, 'success');
+insert into events values(4, 'success');
+insert into events values(4, 'success');
+insert into events values(4, 'failure');
+insert into events values(4, 'failure');
+insert into events values(5, 'failure');
+insert into events values(5, 'failure');
+insert into events values(5, 'failure');
+insert into events values(5, 'failure');
+insert into events values(5, 'failure');
+insert into events values(5, 'failure');
+
+insert into events values(4, 'success');
+insert into events values(5, 'success');
+insert into events values(5, 'success');
+insert into events values(1, 'failure');
+insert into events values(1, 'failure');
+insert into events values(1, 'failure');
+insert into events values(2, 'failure');
+insert into events values(3, 'failure');
+
+select * from customers;
+select * from campaigns;
+select * from events;
+
+WITH cte AS (
+    SELECT 
+        CONCAT(cst.first_name, ' ', cst.last_name) AS customer,
+        ev.status AS event_type,
+        GROUP_CONCAT(DISTINCT cmp.name ORDER BY cmp.name ASC SEPARATOR ', ') AS campaign,
+        COUNT(1) AS total,
+        RANK() OVER (PARTITION BY ev.status ORDER BY COUNT(1) DESC) AS rnk
+    FROM customers cst
+    JOIN campaigns cmp ON cmp.customer_id = cst.id
+    JOIN events ev ON ev.campaign_id = cmp.id
+    GROUP BY customer, event_type
+)
+SELECT 
+    event_type, 
+    customer, 
+    campaign, 
+    total
+FROM cte 
+WHERE rnk = 1
+ORDER BY event_type DESC;
