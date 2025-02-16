@@ -1,0 +1,30 @@
+use practice;
+
+DROP TABLE Product;
+
+CREATE TABLE Product (
+    ProductID INT PRIMARY KEY,
+    Product VARCHAR(255),
+    Category VARCHAR(100)
+);
+
+INSERT INTO Product (ProductID, Product, Category)
+VALUES
+    (1, 'Laptop', 'Electronics'),
+    (2, 'Smartphone', 'Electronics'),
+    (3, 'Tablet', 'Electronics'),
+    (4, 'Headphones', 'Accessories'),
+    (5, 'Smartwatch', 'Accessories'),
+    (6, 'Keyboard', 'Accessories'),
+    (7, 'Mouse', 'Accessories'),
+    (8, 'Monitor', 'Accessories'),
+    (9, 'Printer', 'Electronics');
+
+with cte as (
+select *
+, row_number() over(partition by Category order by ProductID) as rnk1
+,row_number() over(partition by Category order by ProductID desc) as rnk2
+ from product )
+ select a.Product, a.Category, b.ProductID
+ from cte a join cte b
+ on a.category = b.category and a.rnk1 = b.rnk2
