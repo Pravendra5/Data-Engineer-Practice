@@ -1,0 +1,51 @@
+use practice;
+ 
+ -- Write a sql quert to find lowest and highest salary emp in each dept
+ 
+create table emp(id int,emp_name varchar(20), gender varchar(20),dept varchar(30), salary int);
+
+insert into emp values (1, 'Tildie', 'Female', 'Support', 1676);
+insert into emp values (2, 'Averil', 'Female', 'Engineering', 1572);
+insert into emp values (3, 'Matthiew', 'Male', 'Engineering', 1477);
+insert into emp values (4, 'Reinald', 'Male', 'Services', 1877);
+insert into emp values (5, 'Karola', 'Male', 'Marketing', 1029);
+insert into emp values (6, 'Manon', 'Male', 'Research and Development', 1729);
+insert into emp values (7, 'Tabbie', 'Female', 'Research and Development', 1000);
+insert into emp values (8, 'Corette', 'Female', 'Marketing', 1624);
+insert into emp values (9, 'Edward', 'Male', 'Accounting', 1157);
+insert into emp values (10, 'Philipa', 'Female', 'Human Resources', 1992);
+insert into emp values (11, 'Ingeberg', 'Female', 'Services', 1515);
+insert into emp values (12, 'Kort', 'Male', 'Support', 1005);
+insert into emp values (13, 'Shelby', 'Male', 'Product Management', 1020);
+insert into emp values (14, 'Shelden', 'Male', 'Legal', 1354);
+insert into emp values (15, 'Sonya', 'Female', 'Marketing', 1321);
+
+-- Approach 1:
+
+with cte as (
+	select dept,
+	min(salary) as min_salary,
+	max(salary) as max_salary
+	from emp 
+	group by dept )
+
+select c.dept, e1.emp_name as min_salary, e2.emp_name as max_salary from cte c
+join emp e1
+on c.dept = e1.dept and c.min_salary = e1.salary
+join emp e2
+on c.dept = e2.dept and c.max_salary = e2.salary;
+
+-- Approch 2
+WITH cte AS (
+    SELECT dept, emp_name, salary,
+           ROW_NUMBER() OVER (PARTITION BY dept ORDER BY salary ASC) AS min_rnk,
+           ROW_NUMBER() OVER (PARTITION BY dept ORDER BY salary DESC) AS max_rnk
+    FROM emp
+)
+SELECT dept,
+       MAX(CASE WHEN min_rnk = 1 THEN emp_name END) AS lowest_salary,
+       MAX(CASE WHEN max_rnk = 1 THEN emp_name END) AS highest_salary
+FROM cte
+GROUP BY dept
+ORDER BY dept;
+
