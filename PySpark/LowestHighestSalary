@@ -1,0 +1,36 @@
+from pyspark.sql import SparkSession, Window
+from pyspark.sql.functions import col, first, last
+
+# Initialize SparkSession
+spark = SparkSession.builder.appName("LowestHighestSalary").getOrCreate()
+
+# Sample DataFrame
+data = [
+    ("Alice", "HR", 5000),
+    ("Bob", "HR", 7000),
+    ("Charlie", "IT", 8000),
+    ("David", "IT", 6000),
+    ("Eve", "Finance", 7500),
+    ("Frank", "Finance", 7500),
+    ("Prashant", "HR", 90000),
+    ("Nidheesh", "HR", 60000),
+    ("Mayur", "IT", 82000),
+    ("Aaadhya", "IT", 6000),
+    ("Ravi", "Support", 75300),
+    ("Rishi", "Support", 75000)
+]
+columns = ["emp_name", "dept", "salary"]
+
+df = spark.createDataFrame(data, columns)
+
+window_spec = Window.partitionBy("dept").orderBy("salary")
+
+result_df = df.withColumn("lowest_salary", first("emp_name").over(window_spec)) \
+                .withColumn("highest_salary", last("emp_name").over(window_spec)) \
+                .groupBy("dept").agg(
+    first("lowest_salary").alias("lowest_salary"),
+    last("highest_salary").alias("highest_salary")
+)
+
+
+result_df.show()
