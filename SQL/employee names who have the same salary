@@ -1,0 +1,45 @@
+**************************************************************************** SQL **********************************************************
+
+use practice;
+
+-- write a sql query to find the employee names who have the same salary 
+-- as anothe employee in the same department
+
+create table emp_info(id int, name varchar(10),dept varchar(10),salary int);
+
+insert into emp_info values(1,'Akash','Sales',100);
+insert into emp_info values(2,'John','Sales',110);
+insert into emp_info values(3,'Rohit','Sales',100);
+insert into emp_info values(4,'Tom','IT',200);
+insert into emp_info values(5,'Subham','IT',205);
+insert into emp_info values(6,'Vabna','IT',200);
+insert into emp_info values(7,'Prativa','Marketing',150);
+insert into emp_info values(8,'Rahul','Marketing',155);
+insert into emp_info values(9,'yash','Marketing',160);
+
+-- Approach 1:
+
+select id, name, dept, salary from(
+select *, count(*) over(partition by dept, salary order by salary) as grp
+from emp_info) result
+where grp >= 2;
+
+-- Approach 2:
+
+select * from emp_info;
+
+with cte as(
+select dept, salary, count(*)
+from emp_info
+group by dept, salary
+having count(*) >= 2)
+
+select e.*
+from cte c join emp_info e 
+on c.dept = e.dept and c.salary = e.salary;
+
+-- Approach 3:
+
+select e1.* from 
+emp_info e1 join emp_info e2
+on e1.dept = e2.dept and e1.salary = e2.salary and e1.id != e2.id
