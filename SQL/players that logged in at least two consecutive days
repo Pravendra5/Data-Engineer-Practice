@@ -1,0 +1,25 @@
+use practice;
+
+select * from activity;
+ 
+create table activity(player_id int,device_id int,event_date date);
+
+insert into activity values(1,2,'2024-12-01');
+insert into activity values(1,2,'2024-12-02');
+insert into activity values(2,3,'2024-12-05');
+insert into activity values(3,1,'2024-12-07');
+insert into activity values(3,4,'2024-12-09');
+
+-- write a sql query to find  the count the number of players that logged in
+-- for at least two consecutive days starting from thier first login date,
+-- then divide  that number by total number of eployees
+
+with total_player as (
+select count(distinct player_id) as total_count_player from activity
+), cte as (
+select *, lead(event_date) over(partition by player_id order by event_date) as next_event 
+from activity
+), cte1 as(
+select count(*) as consecutive_match_played from cte 
+where datediff(next_event, event_date) = 1 )
+select *, round(consecutive_match_played / total_count_player * 100, 2) as 'Percentage' from total_player, cte1
