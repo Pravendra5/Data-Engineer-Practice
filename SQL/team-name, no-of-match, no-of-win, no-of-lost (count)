@@ -1,0 +1,58 @@
+*************************************************************************** SQL *****************************************************************************
+
+use practice;
+
+-- write a sql query to find team-name , no-of-match, no-of-win, no-of-lost count
+
+create table cricket_match
+(match_id int,team1 Varchar(20),team2 Varchar(20),result Varchar(20));
+
+INSERT INTO cricket_match values(1,'ENG','NZ','NZ');
+INSERT INTO cricket_match values(2,'PAK','NED','PAK');
+INSERT INTO cricket_match values(3,'AFG','BAN','BAN');
+INSERT INTO cricket_match values(4,'SA','SL','SA');
+INSERT INTO cricket_match values(5,'AUS','IND','AUS');
+INSERT INTO cricket_match values(6,'NZ','NED','NZ');
+INSERT INTO cricket_match values(7,'ENG','BAN','ENG');
+INSERT INTO cricket_match values(8,'SL','PAK','PAK');
+INSERT INTO cricket_match values(9,'AFG','IND','IND');
+INSERT INTO cricket_match values(10,'SA','AUS','SA');
+INSERT INTO cricket_match values(11,'BAN','NZ','BAN');
+INSERT INTO cricket_match values(12,'PAK','IND','IND');
+INSERT INTO cricket_match values(13,'SA','IND','DRAW');
+
+select * from cricket_match;
+
+-- team-name, no-of-match, no-of-win, no-of-lost (count)
+
+-- Approach 1:
+
+with cte as (
+select team1 as team_name
+, case when team1 = result then 1 else 0 end as win_flag
+, case when result = 'DRAW' then 1 else 0 end as draw_count
+from cricket_match
+union all
+select team2 as team_name
+, case when team2 = result then 1 else 0 end as win_flag
+, case when result = 'DRAW' then 1 else 0 end as draw_count
+from cricket_match )
+select team_name, count(team_name) as match_played
+, sum(case when win_flag = 1 then 1 else 0 end) as win_count
+, count(team_name) - sum(case when win_flag = 1 then 1 else 0 end) - sum(draw_count) as lost_match
+from cte
+group by team_name;
+
+-- Approach 2:
+
+with cte as (
+select team1 as team_name, result as winning_team from cricket_match
+union all
+select team2 as team_name, result as winning_team from cricket_match
+)
+select team_name, count(*) as played_match
+, sum(case when team_name = winning_team then 1 else 0 end) as win
+, sum(case when team_name != winning_team then 1 else 0 end) as loss
+from cte
+group by team_name
+order by team_name
