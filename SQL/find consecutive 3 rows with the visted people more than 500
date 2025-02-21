@@ -1,0 +1,35 @@
+*********************************************************************** SQL *********************************************************************
+
+use practice;
+
+-- write a sql query to find consecutive 3 rows with the visted people more than 500
+
+CREATE TABLE tourist (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    date_id DATE NOT NULL,
+    visited_people INT NOT NULL
+);
+
+insert into tourist (date_id, visited_people) values('2024-01-01',700);
+insert into tourist (date_id, visited_people) values('2024-02-01',460);
+insert into tourist (date_id, visited_people) values('2024-03-01',550);
+insert into tourist (date_id, visited_people) values('2024-04-01',510);
+insert into tourist (date_id, visited_people) values('2024-05-01',550);
+insert into tourist (date_id, visited_people) values('2024-06-01',540);
+insert into tourist (date_id, visited_people) values('2024-07-01',90);
+insert into tourist (date_id, visited_people) values('2024-08-01',650);
+insert into tourist (date_id, visited_people) values('2024-09-01',580);
+insert into tourist (date_id, visited_people) values('2024-10-01',590);
+
+select * from tourist;
+
+with cte as (
+select *
+, row_number() over (order by date_id) as rnk
+, id - row_number() over (order by date_id) as diff
+from tourist
+where visited_people > 500)
+select id, date_id, visited_people 
+from (
+select *, count(diff) over (partition by diff order by diff) as grp_count from cte ) A
+where grp_count >= 3
